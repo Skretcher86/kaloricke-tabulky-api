@@ -46,7 +46,7 @@ class FoodSchema(BaseModel):
     sourceTag: Optional[str] = "USER_COMMUNITY"
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 app = FastAPI(title="Kalorické Tabulky API", version="1.0.0")
 
@@ -86,13 +86,13 @@ def search_foods(query: str, db: Session = Depends(get_db)):
 def create_or_update_food(food: FoodSchema, db: Session = Depends(get_db)):
     existing_food = db.query(FoodModel).filter(FoodModel.id == food.id).first()
     if existing_food:
-        for key, value in food.model_dump().items():
+        for key, value in food.dict().items():
             setattr(existing_food, key, value)
         db.commit()
         db.refresh(existing_food)
         return existing_food
 
-    new_food = FoodModel(**food.model_dump())
+    new_food = FoodModel(**food.dict())
     db.add(new_food)
     db.commit()
     db.refresh(new_food)
